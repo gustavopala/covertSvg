@@ -4,42 +4,105 @@ const csvtojson = require('csvtojson');
 const app = express();
 const port = 3000;
 
+
 function parsearNumero(valor) {
-    // Reemplazar comas por puntos, eliminar puntos de separación de miles y convertir a número
-    const valorLimpio = valor.replace(/,/g, '').replace(/\./g, '').replace(/[^\d.-]/g, '');
-    return parseFloat(valorLimpio);
-  }
+  // Reemplazar comas por puntos, eliminar puntos de separación de miles
+  const valorLimpio = valor.replace(/\./g, '').replace(/,/g, '.');
+
+  return parseFloat(valorLimpio);
+}
 
 function limpiarInformacion(jsonArray) {
-    const resultados = {};
-  
-    jsonArray.forEach(item => {
-      const cuenta = item.Cuenta;
-      const moneda = item.Moneda;
-      const liquidado = parsearNumero(item['Liquidado al: 4/09']);
+  const resultados = {};
+
+  jsonArray.forEach(item => {
+    const cuenta = item.Cuenta;
+    const moneda = item.Moneda;
+    const liquidado = parsearNumero(item['Liquidado al: 4/09']);
     const total = parsearNumero(item.Total);
-  
-      if (!resultados[cuenta]) {
-        resultados[cuenta] = {
-          Cuenta: cuenta,
-          Moneda: moneda,
-          Total: 0
-        };
-      }
-  
-      // Verifica si ambos saldos son iguales, en ese caso devuelve uno de los valores
-      if (liquidado == total) {
-        resultados[cuenta].Total = total;
-      } else {
-        resultados[cuenta].Total = liquidado + total;
-      }
-    });
-  
-    // Convertir el objeto de resultados en un array
-    const resultadosArray = Object.values(resultados);
-  
-    return resultadosArray;
-  }
+
+    if (!resultados[cuenta]) {
+      resultados[cuenta] = {
+        Cuenta: cuenta,
+        Moneda: moneda,
+        Total: 0
+      };
+    }
+
+    // Verifica si ambos saldos son iguales, en ese caso devuelve uno de los valores
+    if (liquidado === total) {
+      resultados[cuenta].Total = total
+    } else {
+      const suma = liquidado + total;
+      resultados[cuenta].Total = suma
+    }
+  });
+   // Convertir el objeto de resultados en un array
+   const resultadosArray = Object.values(resultados);
+
+   return resultadosArray;
+ }
+   
+/* const objetoDePrueba = {
+  "Tipo": "COMITENTE",
+		"Nivel": 0,
+		"Cuenta": 107859,
+		"Moneda": "PESOS",
+		"Liquidado al: 4/09": "        -59.445,82",
+		"A Liq": {
+			"24 hs": "              0,00",
+			"48 hs": "              0,00",
+			"72 hs": "              0,00"
+		},
+		"Total": "        -59.445,82",
+		"Garantia": "              0,00"
+};
+
+// Prueba de la función parsearNumero
+console.log(parsearNumero(objetoDePrueba['Liquidado al: 4/09'])); // Debería imprimir -276.86
+console.log(parsearNumero(objetoDePrueba.Total)); // Debería imprimir -38915898.60
+
+// Prueba de la función limpiarInformacion
+const resultadoPrueba = limpiarInformacion([objetoDePrueba]);
+console.log(resultadoPrueba); // Debería imprimir el resultado esperado para este objeto */
+
+/* function parsearNumero(valor) {
+  // Reemplazar comas por puntos, eliminar puntos de separación de miles y convertir a número
+  const valorLimpio = valor.replace(/,/g, '').replace(/\./g, '').replace(/[^\d.-]/g, '');
+  return parseFloat(valorLimpio);
+}
+
+function limpiarInformacion(jsonArray) {
+  const resultados = {};
+
+  jsonArray.forEach(item => {
+    const cuenta = item.Cuenta;
+    const moneda = item.Moneda;
+    const liquidado = parsearNumero(item['Liquidado al: 4/09']);
+    const total = parsearNumero(item.Total);
+
+    if (!resultados[cuenta]) {
+      resultados[cuenta] = {
+        Cuenta: cuenta,
+        Moneda: moneda,
+        Total: 0
+      };
+    }
+
+    // Verifica si ambos saldos son iguales, en ese caso devuelve uno de los valores
+    if (liquidado === total) {
+      resultados[cuenta].Total = total.toFixed(2);
+    } else {
+      const suma = liquidado + total;
+      resultados[cuenta].Total = suma.toFixed(2);
+    }
+  });
+
+  // Convertir el objeto de resultados en un array
+  const resultadosArray = Object.values(resultados);
+
+  return resultadosArray;
+}*/
   
   app.get('/', (req, res) => {
     try {
